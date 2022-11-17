@@ -9,6 +9,7 @@ import java.util.Collection;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@EqualsAndHashCode(of = "username")
 public class SecurityUser implements UserDetails {
 
     private String username;
