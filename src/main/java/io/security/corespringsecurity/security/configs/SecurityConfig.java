@@ -1,8 +1,6 @@
 package io.security.corespringsecurity.security.configs;
 
-import io.security.corespringsecurity.repository.UserRepository;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
-import io.security.corespringsecurity.security.service.CustomUserDetailsService;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,6 +59,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 ;
 
+        http
+                .sessionManagement()
+                .maximumSessions(1)
+                .expiredUrl("/")
+                .maxSessionsPreventsLogin(true)
+                ;
+//
+//        http
+//                .csrf().disable();
+
+        http
+                .logout()
+                .logoutSuccessUrl("/")
+                .logoutUrl("/logout")
+        ;
     }
 
     @Override
