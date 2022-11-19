@@ -1,9 +1,11 @@
 package io.security.corespringsecurity.security.provider;
 
 import io.security.corespringsecurity.security.SecurityUser;
+import io.security.corespringsecurity.security.common.FormWebAuthenticationDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -34,6 +36,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         if (!passwordEncoder.matches(authentication.getCredentials().toString(), user.getPassword())) {
             throw new BadCredentialsException("Password not Matched! : ");
+        }
+
+        FormWebAuthenticationDetails details = (FormWebAuthenticationDetails) authentication.getDetails();
+        String secretKey = details.getSecretKey();
+        if ( !StringUtils.hasText(secretKey) || !secretKey.equals("secret")){
+            throw new InsufficientAuthenticationException("InsufficientAuthenticationException");
         }
 
         return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());

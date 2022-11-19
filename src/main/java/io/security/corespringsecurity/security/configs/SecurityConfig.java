@@ -1,5 +1,6 @@
 package io.security.corespringsecurity.security.configs;
 
+import io.security.corespringsecurity.security.common.FormAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginPage("/login")
                 .loginProcessingUrl("/login_proc")
                 .defaultSuccessUrl("/")
+                .authenticationDetailsSource(new FormAuthenticationDetailsSource())
                 .permitAll()
                 ;
 
