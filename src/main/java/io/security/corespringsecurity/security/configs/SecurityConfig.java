@@ -1,6 +1,9 @@
 package io.security.corespringsecurity.security.configs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.security.corespringsecurity.security.common.FormAuthenticationDetailsSource;
+import io.security.corespringsecurity.security.handler.CustomAccessDeniedHandler;
+import io.security.corespringsecurity.security.handler.CustomAuthenticationEntryPoint;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationFailureHandler;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
@@ -30,6 +33,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("customUserDetailsService"))
     private UserDetailsService userDetailsService;
 
+    @Setter(onMethod_ = @Autowired)
+    private ObjectMapper objectMapper;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
@@ -52,11 +58,25 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/", "/users", "/login*").permitAll()
+                .antMatchers("/", "/users", "/login*", "/denied*").permitAll()
                 .antMatchers("/mypage").hasRole("USER")
                 .antMatchers("/messages").hasRole("MANAGER")
                 .antMatchers("/config").hasRole("ADMIN")
                 .anyRequest().authenticated();
+
+
+        /**
+         *  Spring Security에서 AccessDeniedHandler인터페이스와 AuthenticationEntryPoint인터페이스가 존재한다.
+         *  AccessDeniedHandler는 서버에 요청을 할 때 액세스가 가능한지 권한을 체크후 액세스 할 수 없는 요청을 했을시 동작된다.
+         *   -> 로그인은 성공했지만 해당 리소스에 접근 권한이 없는경우
+         *
+         *  AuthenticationEntryPoint는 인증이 되지않은 유저가 요청을 했을때 동작된다.
+         *   -> 로그인도 하지 않았으면서 해당 리소스에 접근 하려는 경우
+         */
+
+        http.exceptionHandling()
+                .accessDeniedHandler(new CustomAccessDeniedHandler(objectMapper))
+                .authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper));
 
         http
                 .formLogin()
