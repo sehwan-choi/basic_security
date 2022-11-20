@@ -87,4 +87,15 @@ public class HomeController {
 		model.addAttribute("exception" , exception);
 		return "user/login/denied";
 	}
+
+	@GetMapping("/messages")
+	public String message() {
+		return "user/messages";
+	}
+
+	@GetMapping("/api/messages")
+	@ResponseBody
+	public String apiMessage() {
+		return "message ok";
+	}
 }

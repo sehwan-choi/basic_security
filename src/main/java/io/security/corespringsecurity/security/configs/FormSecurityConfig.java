@@ -6,29 +6,28 @@ import io.security.corespringsecurity.security.handler.CustomAccessDeniedHandler
 import io.security.corespringsecurity.security.handler.CustomAuthenticationEntryPoint;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationFailureHandler;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
+import io.security.corespringsecurity.security.provider.AjaxAuthenticationProvider;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
-import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 
+@Order(1)
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("customUserDetailsService"))
     private UserDetailsService userDetailsService;
@@ -36,10 +35,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Setter(onMethod_ = @Autowired)
     private ObjectMapper objectMapper;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
+    @Setter(onMethod_ = @Autowired)
+    private PasswordEncoder passwordEncoder;
+
+    @Setter(onMethod_ = @Autowired)
+    private SessionRegistry sessionRegistry;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -51,7 +51,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //        auth.inMemoryAuthentication().withUser("admin").password(password).roles("ADMIN", "USER", "MANAGER");
 //        CustomUserDetailsService customUserDetailsService = new CustomUserDetailsService(userRepository);
 //        auth.userDetailsService(customUserDetailsService);
-        auth.authenticationProvider(new CustomAuthenticationProvider(userDetailsService, passwordEncoder()));
+        auth.authenticationProvider(new CustomAuthenticationProvider(userDetailsService, passwordEncoder));
+    }
+
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 
     @Override
@@ -63,7 +68,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/messages").hasRole("MANAGER")
                 .antMatchers("/config").hasRole("ADMIN")
                 .anyRequest().authenticated();
-
 
         /**
          *  Spring Security에서 AccessDeniedHandler인터페이스와 AuthenticationEntryPoint인터페이스가 존재한다.
@@ -94,11 +98,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .maximumSessions(1)
                 .expiredUrl("/")
                 .maxSessionsPreventsLogin(true)
-                .sessionRegistry(sessionRegistry())
+                .sessionRegistry(sessionRegistry)
                 ;
-//
-//        http
-//                .csrf().disable();
+
+        http
+                .csrf().disable();
 
         http
                 .logout()
@@ -111,17 +115,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
-    }
-
-    @Bean
-    public SessionRegistry sessionRegistry() {
-        SessionRegistry sessionRegistry = new SessionRegistryImpl();
-        return sessionRegistry;
-    }
-
-    // Register HttpSessionEventPublisher
-    @Bean
-    public static ServletListenerRegistrationBean httpSessionEventPublisher() {
-        return new ServletListenerRegistrationBean(new HttpSessionEventPublisher());
     }
 }
