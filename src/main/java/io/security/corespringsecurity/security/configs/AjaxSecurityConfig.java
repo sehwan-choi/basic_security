@@ -79,14 +79,35 @@ public class AjaxSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .csrf().disable();
+
+//        customConfigurerAjax(http);
+    }
+
+    private void customConfigurerAjax(HttpSecurity http) throws Exception {
+        http
+                .apply(new AjaxLoginConfigurer(defaultLoginUrl, objectMapper))
+                .successHandlerAjax(ajaxAuthenticationSuccessHandler())
+                .failureHandlerAjax(ajaxAuthenticationFailureHandler())
+                .setAuthenticationManager(authenticationManagerBean())
+                .loginProcessingUrl(defaultLoginUrl);
     }
 
     @Bean
     public AjaxLoginProcessingFilter ajaxLoginProcessingFilter() throws Exception {
         AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter(defaultLoginUrl, objectMapper);
         ajaxLoginProcessingFilter.setAuthenticationManager(authenticationManagerBean());
-        ajaxLoginProcessingFilter.setAuthenticationFailureHandler(new AjaxAuthenticationFailureHandler(objectMapper, messageSource));
-        ajaxLoginProcessingFilter.setAuthenticationSuccessHandler(new AjaxAuthenticationSuccessHandler(objectMapper, messageSource));
+        ajaxLoginProcessingFilter.setAuthenticationFailureHandler(ajaxAuthenticationFailureHandler());
+        ajaxLoginProcessingFilter.setAuthenticationSuccessHandler(ajaxAuthenticationSuccessHandler());
         return ajaxLoginProcessingFilter;
+    }
+
+    @Bean
+    public AjaxAuthenticationFailureHandler ajaxAuthenticationFailureHandler() {
+        return new AjaxAuthenticationFailureHandler(objectMapper, messageSource);
+    }
+
+    @Bean
+    public AjaxAuthenticationSuccessHandler ajaxAuthenticationSuccessHandler() {
+        return new AjaxAuthenticationSuccessHandler(objectMapper, messageSource);
     }
 }
