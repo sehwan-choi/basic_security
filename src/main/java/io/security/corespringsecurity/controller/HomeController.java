@@ -93,6 +93,12 @@ public class HomeController {
 		return "user/messages";
 	}
 
+	@GetMapping("/mypage")
+	public String mypage() {
+		return "user/mypage";
+	}
+
+
 	@GetMapping("/api/messages")
 	@ResponseBody
 	public String apiMessage() {
