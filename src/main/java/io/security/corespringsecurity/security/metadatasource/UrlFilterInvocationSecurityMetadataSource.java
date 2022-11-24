@@ -11,12 +11,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @Component
 @RequiredArgsConstructor
-public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocationSecurityMetadataSource, InitializingBean {
+public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocationSecurityMetadataSource, ResourcesReloadable {
 
     private final UrlResourceMapper mapper;
 
@@ -55,8 +56,16 @@ public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocati
         return FilterInvocation.class.isAssignableFrom(clazz);
     }
 
-    @Override
+    @PostConstruct
     public void afterPropertiesSet() throws Exception {
+        reload();
+    }
+
+    @Override
+    public void reload() {
+        if (!requestMap.isEmpty()) {
+            requestMap.clear();
+        }
         requestMap = mapper.getResources();
     }
 }

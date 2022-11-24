@@ -3,6 +3,7 @@ package io.security.corespringsecurity.controller;
 
 import io.security.corespringsecurity.domain.User;
 import io.security.corespringsecurity.security.SecurityUser;
+import io.security.corespringsecurity.security.metadatasource.ResourcesReloadable;
 import io.security.corespringsecurity.service.UserService;
 import io.security.corespringsecurity.service.dto.UserDto;
 import lombok.Setter;
@@ -28,6 +29,9 @@ public class HomeController {
 
 	@Setter(onMethod_ = @Autowired)
 	private PasswordEncoder passwordEncoder;
+
+	@Setter(onMethod_ = @Autowired)
+	private ResourcesReloadable reloadable;
 
 	@GetMapping(value="/")
 	public String home() throws Exception {
@@ -98,10 +102,27 @@ public class HomeController {
 		return "user/mypage";
 	}
 
-
 	@GetMapping("/api/messages")
 	@ResponseBody
 	public String apiMessage() {
 		return "message ok";
+	}
+
+	@GetMapping("/api/mypage")
+	@ResponseBody
+	public String apiMypage() {
+		return "mypage ok";
+	}
+
+	@GetMapping("/config")
+	public String config() {
+		return "user/config";
+	}
+
+	@PostMapping("/api/reload")
+	@ResponseBody
+	public String reload() {
+		reloadable.reload();
+		return "reload ok";
 	}
 }
