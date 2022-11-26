@@ -114,11 +114,6 @@ public class HomeController {
 		return "mypage ok";
 	}
 
-	@GetMapping("/config")
-	public String config() {
-		return "user/config";
-	}
-
 	@PostMapping("/api/reload")
 	@ResponseBody
 	public String reload() {
