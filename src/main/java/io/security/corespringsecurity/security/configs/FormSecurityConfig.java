@@ -10,6 +10,7 @@ import io.security.corespringsecurity.security.handler.CustomAuthenticationSucce
 import io.security.corespringsecurity.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
 import io.security.corespringsecurity.security.provider.AjaxAuthenticationProvider;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
+import io.security.corespringsecurity.service.RoleHierarchyService;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,7 +20,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.RoleHierarchyVoter;
 import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -33,6 +37,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -55,6 +60,9 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("urlFilterInvocationSecurityMetadataSource"))
     private FilterInvocationSecurityMetadataSource metadataSource;
+
+    @Setter(onMethod_ = @Autowired)
+    private RoleHierarchyService roleHierarchyService;
 
     private final String[] permitAllResources = {"/", "/users", "/login*", "/denied*", "/user/login/**"};
 
@@ -159,14 +167,36 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
         return filter;
     }
 
+    @Bean
+    public FilterSecurityInterceptor hierarchyFilterSecurityInterceptor() throws Exception {
+        FilterSecurityInterceptor filter = new FilterSecurityInterceptor();
+
+        filter.setSecurityMetadataSource(metadataSource);
+        filter.setAccessDecisionManager(affirmativeBased());
+        filter.setAuthenticationManager(authenticationManagerBean());
+        return filter;
+    }
+
     private AccessDecisionManager affirmativeBased() {
         return new AffirmativeBased(getAccessDecisionVoters());
     }
 
     private List<AccessDecisionVoter<?>> getAccessDecisionVoters() {
-        return Arrays.asList(new RoleVoter());
+        List<AccessDecisionVoter<? extends Object>> accessDecisionVoters = new ArrayList<>();
+
+        accessDecisionVoters.add(new RoleVoter());
+        accessDecisionVoters.add(hierarchyVoter());
+        return accessDecisionVoters;
     }
 
+    @Bean
+    public AccessDecisionVoter<?> hierarchyVoter() {
+        return new RoleHierarchyVoter(roleHierarchy());
+    }
 
+    @Bean
+    public RoleHierarchyImpl roleHierarchy() {
+        return new RoleHierarchyImpl();
+    }
 
 }
