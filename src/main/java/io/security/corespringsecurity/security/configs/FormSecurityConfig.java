@@ -1,16 +1,15 @@
 package io.security.corespringsecurity.security.configs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.security.corespringsecurity.repository.AccessIpRepository;
 import io.security.corespringsecurity.security.common.FormAuthenticationDetailsSource;
 import io.security.corespringsecurity.security.filter.PermitAllFilter;
 import io.security.corespringsecurity.security.handler.CustomAccessDeniedHandler;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationEntryPoint;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationFailureHandler;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationSuccessHandler;
-import io.security.corespringsecurity.security.metadatasource.UrlFilterInvocationSecurityMetadataSource;
-import io.security.corespringsecurity.security.provider.AjaxAuthenticationProvider;
 import io.security.corespringsecurity.security.provider.CustomAuthenticationProvider;
-import io.security.corespringsecurity.service.RoleHierarchyService;
+import io.security.corespringsecurity.security.voter.IpAddressVoter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +19,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.access.vote.AffirmativeBased;
 import org.springframework.security.access.vote.RoleHierarchyVoter;
@@ -38,7 +36,6 @@ import org.springframework.security.web.access.intercept.FilterInvocationSecurit
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Order(1)
@@ -62,7 +59,7 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
     private FilterInvocationSecurityMetadataSource metadataSource;
 
     @Setter(onMethod_ = @Autowired)
-    private RoleHierarchyService roleHierarchyService;
+    private AccessIpRepository accessIpRepository;
 
     private final String[] permitAllResources = {"/", "/users", "/login*", "/denied*", "/user/login/**"};
 
@@ -184,6 +181,7 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
     private List<AccessDecisionVoter<?>> getAccessDecisionVoters() {
         List<AccessDecisionVoter<? extends Object>> accessDecisionVoters = new ArrayList<>();
 
+        accessDecisionVoters.add(new IpAddressVoter(accessIpRepository));
         accessDecisionVoters.add(new RoleVoter());
         accessDecisionVoters.add(hierarchyVoter());
         return accessDecisionVoters;
