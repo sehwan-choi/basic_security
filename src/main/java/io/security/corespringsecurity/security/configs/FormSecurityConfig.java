@@ -2,6 +2,7 @@ package io.security.corespringsecurity.security.configs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.security.corespringsecurity.security.common.FormAuthenticationDetailsSource;
+import io.security.corespringsecurity.security.filter.PermitAllFilter;
 import io.security.corespringsecurity.security.handler.CustomAccessDeniedHandler;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationEntryPoint;
 import io.security.corespringsecurity.security.handler.CustomAuthenticationFailureHandler;
@@ -55,6 +56,8 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
     @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("urlFilterInvocationSecurityMetadataSource"))
     private FilterInvocationSecurityMetadataSource metadataSource;
 
+    private final String[] permitAllResources = {"/", "/users", "/login*", "/denied*", "/user/login/**"};
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 
@@ -75,9 +78,10 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
         http
                 .authorizeRequests()
-                .antMatchers("/", "/users", "/login*", "/denied*").permitAll()
+//                .antMatchers(permitAllResources).permitAll()
 //                .antMatchers("/mypage").hasRole("USER")
 //                .antMatchers("/messages").hasRole("MANAGER")
 //                .antMatchers("/config").hasRole("ADMIN")
@@ -116,7 +120,8 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
                 ;
 
         http
-                .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
+                .addFilterBefore(permitAllFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
+//                .addFilterBefore(customFilterSecurityInterceptor(), FilterSecurityInterceptor.class);
 
         http
                 .csrf().disable();
@@ -132,6 +137,16 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+    }
+
+    @Bean
+    public FilterSecurityInterceptor permitAllFilterSecurityInterceptor() throws Exception {
+        PermitAllFilter permitAllFilter = new PermitAllFilter(permitAllResources);
+
+        permitAllFilter.setSecurityMetadataSource(metadataSource);
+        permitAllFilter.setAccessDecisionManager(affirmativeBased());
+        permitAllFilter.setAuthenticationManager(authenticationManagerBean());
+        return permitAllFilter;
     }
 
     @Bean
@@ -151,5 +166,7 @@ public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
     private List<AccessDecisionVoter<?>> getAccessDecisionVoters() {
         return Arrays.asList(new RoleVoter());
     }
+
+
 
 }
