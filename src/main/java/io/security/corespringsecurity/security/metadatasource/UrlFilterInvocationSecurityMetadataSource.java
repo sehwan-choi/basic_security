@@ -1,13 +1,10 @@
 package io.security.corespringsecurity.security.metadatasource;
 
-import io.security.corespringsecurity.security.service.UrlResourceMapper;
+import io.security.corespringsecurity.security.service.UrlSecurityResourceMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +16,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class UrlFilterInvocationSecurityMetadataSource implements FilterInvocationSecurityMetadataSource, ResourcesReloadable {
 
-    private final UrlResourceMapper mapper;
+    private final UrlSecurityResourceMapper mapper;
 
     private LinkedHashMap<RequestMatcher, List<ConfigAttribute>> requestMap = new LinkedHashMap<>();
 

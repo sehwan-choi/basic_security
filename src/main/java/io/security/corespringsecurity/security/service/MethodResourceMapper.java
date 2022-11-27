@@ -6,7 +6,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import java.util.List;
 import java.util.Map;
 
-public interface ResourceMapper {
+public interface MethodResourceMapper {
 
-    Map<RequestMatcher, List<ConfigAttribute>> getResources();
+    Map<String, List<ConfigAttribute>> getResources();
 }

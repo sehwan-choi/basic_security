@@ -99,6 +99,7 @@ public class HomeController {
 
 	@GetMapping("/mypage")
 	public String mypage() {
+		userService.order();
 		return "user/mypage";
 	}
 

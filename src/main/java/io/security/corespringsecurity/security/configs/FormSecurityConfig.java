@@ -42,7 +42,6 @@ import java.util.List;
 @Order(1)
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 public class FormSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Setter(onMethod_ = @Autowired, onParam_ = @Qualifier("customUserDetailsService"))
