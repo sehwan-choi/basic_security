@@ -5,6 +5,7 @@ import io.security.corespringsecurity.repository.UserRepository;
 import io.security.corespringsecurity.service.UserService;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,5 +19,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User createUser(User user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    @Secured("ROLE_USER")
+    public void order() {
+        System.out.println("order");
     }
 }
